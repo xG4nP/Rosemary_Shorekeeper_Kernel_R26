@@ -98,14 +98,14 @@ enum pm_state {
 #define PPS_VOL_HYS			800
 
 #define STEP_MV			20
-#define TAPER_VOL_HYS			80
-#define TAPER_WITH_IBUS_HYS			60
-#define TAPER_IBUS_THR			450
+#define TAPER_VOL_HYS			60
+#define TAPER_WITH_IBUS_HYS			50
+#define TAPER_IBUS_THR			350
 
 /* BQ taper related */
 #define BQ_TAPER_HYS_MV			10
-#define BQ_TAPER_DECREASE_STEP_MA			100
-#define HIGH_VOL_THR_MV			4350
+#define BQ_TAPER_DECREASE_STEP_MA			80
+#define HIGH_VOL_THR_MV			4400
 
 /* SC8551 related */
 #define MAX_BYPASS_CURRENT_MA			3000
