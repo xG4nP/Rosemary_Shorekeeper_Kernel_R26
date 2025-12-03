@@ -108,9 +108,9 @@ enum pm_state {
 #define HIGH_VOL_THR_MV			4400
 
 /* SC8551 related */
-#define MAX_BYPASS_CURRENT_MA			3000
-#define BYPASS_MODE_ENTER_CURRENT_MA		3000
-#define BYPASS_MODE_EXIT_CURRENT_MA		3200
+#define MAX_BYPASS_CURRENT_MA			4000
+#define BYPASS_MODE_ENTER_CURRENT_MA		4000
+#define BYPASS_MODE_EXIT_CURRENT_MA		4200
 
 //2020.12.18 longcheer jiangshitian edit for sc/bq pps current limited
 #define NORMAL_WORK_MAX_INPUT_CURRENT_THRESHOLD_UA 2980000   //2020.12.29 longcheer jiangshitian edit for fcc max charge current
