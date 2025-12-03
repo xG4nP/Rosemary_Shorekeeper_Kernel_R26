@@ -71,15 +71,16 @@ enum pm_state {
 #define BQ_TAPER_FCC_VOTER	"BQ_TAPER_FCC_VOTER"
 
 /* defined for non_verified pps charger maxium fcc */
-#define NON_VERIFIED_PPS_FCC_MAX		4800// J7A: 4100
+#define NON_VERIFIED_PPS_FCC_MAX		5500// J7A: 5500
 /* defined min fcc threshold for start bq direct charging */
-#define START_DRIECT_CHARGE_FCC_MIN_THR		2000
-#define MAX_THERMAL_LEVEL			13
+#define START_DRIECT_CHARGE_FCC_MIN_THR		1700
+#define MAX_THERMAL_LEVEL			16
+
 /* jeita related */
-#define JEITA_WARM_DISABLE_CP_THR			480
-#define JEITA_COOL_DISABLE_CP_THR			100
-#define JEITA_BYPASS_WARM_DISABLE_CP_THR		480
-#define JEITA_BYPASS_COOL_DISABLE_CP_THR		100
+#define JEITA_WARM_DISABLE_CP_THR			600
+#define JEITA_COOL_DISABLE_CP_THR			80
+#define JEITA_BYPASS_WARM_DISABLE_CP_THR		600
+#define JEITA_BYPASS_COOL_DISABLE_CP_THR		80
 
 #define PDO_MAX_NUM			7
 
