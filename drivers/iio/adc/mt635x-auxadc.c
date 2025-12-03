@@ -669,7 +669,7 @@ static int mt635x_auxadc_probe(struct platform_device *pdev)
 
 	ret = pmic_auxadc_chip_init(&pdev->dev);
 	if (ret < 0) {
-		dev_notice(&pdev->dev,
+		dev_err(&pdev->dev,
 			"pmic_auxadc_chip_init fail, ret=%d\n", ret);
 		return ret;
 	}
