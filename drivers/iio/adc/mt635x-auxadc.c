@@ -653,7 +653,7 @@ static int mt635x_auxadc_probe(struct platform_device *pdev)
 
 	ret = iio_map_array_register(indio_dev, mt635x_auxadc_default_maps);
 	if (ret) {
-		dev_notice(&pdev->dev, "failed to register iio map:%d\n", ret);
+		dev_err(&pdev->dev, "failed to register iio map:%d\n", ret);
 		return ret;
 	}
 
