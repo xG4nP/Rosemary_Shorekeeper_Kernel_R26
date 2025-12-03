@@ -370,7 +370,7 @@ static void auxadc_reset(struct mt635x_auxadc_device *adc_dev)
 				   adc_dev->rst_setting[i][1],
 				   adc_dev->rst_setting[i][2]);
 	}
-	dev_notice(adc_dev->dev, "reset AUXADC done\n");
+	dev_dbg(adc_dev->dev, "reset AUXADC done\n");
 }
 
 static void auxadc_timeout_handler(struct mt635x_auxadc_device *adc_dev,
