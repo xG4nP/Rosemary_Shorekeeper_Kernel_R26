@@ -262,8 +262,8 @@ static void record_i2c_info(struct mt_i2c *i2c, int tmo)
 
 static int mt_i2c_clock_prepare(struct mt_i2c *i2c)
 {
-	int i;
-	int idx = i2c->rec_idx;
+#if !defined(CONFIG_MT_I2C_FPGA_ENABLE)
+	int ret = 0;
 	unsigned long long endtime;
 	unsigned long ns;
 
