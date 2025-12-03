@@ -260,7 +260,7 @@ static void record_i2c_info(struct mt_i2c *i2c, int tmo)
 		i2c->rec_idx = 0;
 }
 
-static void dump_i2c_info(struct mt_i2c *i2c)
+static int mt_i2c_clock_prepare(struct mt_i2c *i2c)
 {
 	int i;
 	int idx = i2c->rec_idx;
