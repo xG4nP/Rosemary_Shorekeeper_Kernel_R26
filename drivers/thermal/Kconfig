@@ -94,6 +94,12 @@ config THERMAL_DEFAULT_GOV_STEP_WISE
 	  Use the step_wise governor as default. This throttles the
 	  devices one step at a time.
 
+config THERMAL_DEFAULT_GOV_SHOREKEEPER_V3
+    bool "shorekeeper_v3"
+    select THERMAL_GOV_SHOREKEEPER_V3
+	help
+	  Select this if you want to use Shorekeeper as default.
+
 config THERMAL_DEFAULT_GOV_FAIR_SHARE
 	bool "fair_share"
 	select THERMAL_GOV_FAIR_SHARE
@@ -131,6 +137,11 @@ config THERMAL_GOV_FAIR_SHARE
 	bool "Fair-share thermal governor"
 	help
 	  Enable this to manage platform thermals using fair-share governor.
+
+config THERMAL_GOV_SHOREKEEPER_V3
+	bool "shorekeeper_v3 thermal governor"
+	help
+	  Enabling this let shorekeeper manage the thermal.
 
 config THERMAL_GOV_STEP_WISE
 	bool "Step_wise thermal governor"
