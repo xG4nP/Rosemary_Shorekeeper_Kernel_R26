@@ -92,11 +92,10 @@ enum pm_state {
 #define JEITA_HYSTERESIS			20
 
 /* product related */
-#define LOW_POWER_PPS_CURR_THR			2000
-#define XIAOMI_LOW_POWER_PPS_CURR_MAX			1500
-#define XIAOMI_LOW_POWER_PPS_CURR_MAX			1500
+#define LOW_POWER_PPS_CURR_THR			1800
+#define XIAOMI_LOW_POWER_PPS_CURR_MAX			2000
 #define PPS_VOL_MAX			11000
-#define PPS_VOL_HYS			1000
+#define PPS_VOL_HYS			800
 
 #define STEP_MV			20
 #define TAPER_VOL_HYS			80
