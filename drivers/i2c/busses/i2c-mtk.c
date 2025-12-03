@@ -266,9 +266,15 @@ static int mt_i2c_clock_prepare(struct mt_i2c *i2c)
 	int ret = 0;
 	unsigned long long endtime;
 	unsigned long ns;
+ret = clk_prepare(i2c->clk_dma);
+	if (ret)
+		return ret;
 
-	if (i2c->buffermode) /* no i2c history @ buffermode */
-		return;
+	if (i2c->clk_pal != NULL) {
+		ret = clk_prepare(i2c->clk_pal);
+		if (ret)
+			goto err_pal;
+	}
 
 	dev_info(i2c->dev, "last transfer info:\n");
 
