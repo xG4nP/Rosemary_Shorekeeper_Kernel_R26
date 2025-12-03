@@ -395,7 +395,7 @@ static void auxadc_timeout_handler(struct mt635x_auxadc_device *adc_dev,
 			break;
 		strncat(reg_log, reg_str, ARRAY_SIZE(reg_log) - 1);
 	}
-	dev_notice(adc_dev->dev,
+	dev_warn(adc_dev->dev,
 		   "(%d)Time out!(%d) %s\n",
 		   ch_num, timeout_times, reg_log);
 	if (timeout_times == 11)
