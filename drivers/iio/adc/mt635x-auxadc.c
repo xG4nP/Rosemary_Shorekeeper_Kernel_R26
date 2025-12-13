@@ -661,7 +661,7 @@ static int mt635x_auxadc_probe(struct platform_device *pdev)
 
 	ret = iio_device_register(indio_dev);
 	if (ret < 0) {
-		dev_eer(&pdev->dev, "failed to register iio device!\n");
+		dev_err(&pdev->dev, "failed to register iio device!\n");
 		iio_map_array_unregister(indio_dev);
 		return ret;
 	}
