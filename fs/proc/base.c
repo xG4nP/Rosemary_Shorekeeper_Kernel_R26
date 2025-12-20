@@ -100,23 +100,11 @@
 #include <trace/events/oom.h>
 #include "internal.h"
 #include "fd.h"
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+#include <linux/susfs_def.h>
+#endif
 
 #include "../../lib/kstrtox.h"
-
-struct task_kill_info {
-	struct task_struct *task;
-	struct work_struct work;
-};
-
-static void proc_kill_task(struct work_struct *work)
-{
-	struct task_kill_info *kinfo = container_of(work, typeof(*kinfo), work);
-	struct task_struct *task = kinfo->task;
-
-	send_sig(SIGKILL, task, 0);
-	put_task_struct(task);
-	kfree(kinfo);
-}
 
 /* NOTE:
  *	Implementing inode permission operations in /proc is almost
@@ -867,6 +855,9 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 	ssize_t copied;
 	char *page;
 	unsigned int flags;
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+	struct vm_area_struct *vma;
+#endif
 
 	if (!mm)
 		return 0;
@@ -883,7 +874,19 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 
 	while (count > 0) {
 		size_t this_len = min_t(size_t, count, PAGE_SIZE);
-
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+		vma = find_vma(mm, addr);
+		if (vma && vma->vm_file) {
+			struct inode *inode = file_inode(vma->vm_file);
+			if (unlikely(inode->i_mapping->flags & BIT_SUS_MAPS) && susfs_is_current_proc_umounted()) {
+				if (write) {
+					copied = -EFAULT;
+				} else {
+					copied = -EIO;
+				}
+			}
+		}
+#endif
 		if (write && copy_from_user(page, buf, this_len)) {
 			copied = -EFAULT;
 			break;
@@ -1084,7 +1087,6 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 {
 	struct mm_struct *mm = NULL;
 	struct task_struct *task;
-	char task_comm[TASK_COMM_LEN];
 	int err = 0;
 
 	task = get_proc_task(file_inode(file));
@@ -1134,8 +1136,6 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 	if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
 		task->signal->oom_score_adj_min = (short)oom_adj;
 	trace_oom_score_adj_update(task);
-	if (oom_adj >= 700)
-		strncpy(task_comm, task->comm, TASK_COMM_LEN);
 
 	if (mm) {
 		struct task_struct *p;
@@ -1163,20 +1163,6 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 err_unlock:
 	mutex_unlock(&oom_adj_mutex);
 	put_task_struct(task);
-	/* These apps burn through CPU in the background. Don't let them. */
-	if (!err && oom_adj >= 700) {
-		if (!strcmp(task_comm, "id.GoogleCamera")) {
-			struct task_kill_info *kinfo;
-
-			kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
-			if (kinfo) {
-				get_task_struct(task);
-				kinfo->task = task;
-				INIT_WORK(&kinfo->work, proc_kill_task);
-				schedule_work(&kinfo->work);
-			}
-		}
-	}
 	return err;
 }
 
@@ -2110,9 +2096,9 @@ out:
 }
 
 struct map_files_info {
+	unsigned long	start;
+	unsigned long	end;
 	fmode_t		mode;
-	unsigned int	len;
-	unsigned char	name[4*sizeof(long)+2]; /* max: %lx-%lx\0 */
 };
 
 /*
@@ -2279,13 +2265,19 @@ proc_map_files_readdir(struct file *file, struct dir_context *ctx)
 				vma = vma->vm_next) {
 			if (!vma->vm_file)
 				continue;
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+			if (unlikely(file_inode(vma->vm_file)->i_mapping->flags & BIT_SUS_MAPS) &&
+				susfs_is_current_proc_umounted())
+			{
+				continue;
+			}
+#endif
 			if (++pos <= ctx->pos)
 				continue;
 
+			info.start = vma->vm_start;
+			info.end = vma->vm_end;
 			info.mode = vma->vm_file->f_mode;
-			info.len = snprintf(info.name,
-					sizeof(info.name), "%lx-%lx",
-					vma->vm_start, vma->vm_end);
 			if (flex_array_put(fa, i++, &info, GFP_KERNEL))
 				BUG();
 		}
@@ -2293,9 +2285,13 @@ proc_map_files_readdir(struct file *file, struct dir_context *ctx)
 	up_read(&mm->mmap_sem);
 
 	for (i = 0; i < nr_files; i++) {
+		char buf[4 * sizeof(long) + 2];	/* max: %lx-%lx\0 */
+		unsigned int len;
+
 		p = flex_array_get(fa, i);
+		len = snprintf(buf, sizeof(buf), "%lx-%lx", p->start, p->end);
 		if (!proc_fill_cache(file, ctx,
-				      p->name, p->len,
+				      buf, len,
 				      proc_map_files_instantiate,
 				      task,
 				      (void *)(unsigned long)p->mode))
