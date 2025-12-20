@@ -1736,7 +1736,6 @@ skip_orig_flow:
 	return lookup_real(base->d_inode, dentry, flags);
 }
 
-
 static int lookup_fast(struct nameidata *nd,
 		       struct path *path, struct inode **inode,
 		       unsigned *seqp)
@@ -2364,8 +2363,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 		dentry = nd->path.dentry;
 		if (dentry->d_inode && susfs_is_inode_sus_path(dentry->d_inode)) {
-			// - No need to dput() here
-			// - return -ENOENT here since it is walking the sub path of sus path
+			// return -ENOENT here since it is walking the sub path of sus path
 			return -ENOENT;
 		}
 #endif
@@ -2396,8 +2394,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 			}
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 			if (nd->state & ND_STATE_LAST_SDCARD_SUS_PATH) {
-				// - No need to dput() here
-				// - return -ENOENT here since it is walking the sub path of sus sdcard path
+				// return -ENOENT here since it is walking the sub path of sus sdcard path
 				return -ENOENT;
 			}
 			if (parent->d_inode) {
@@ -2578,6 +2575,7 @@ static inline int lookup_last(struct nameidata *nd)
 {
 	if (nd->last_type == LAST_NORM && nd->last.name[nd->last.len])
 		nd->flags |= LOOKUP_FOLLOW | LOOKUP_DIRECTORY;
+
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 	nd->state |= ND_STATE_LOOKUP_LAST;
 #endif
@@ -3987,7 +3985,7 @@ struct file *do_filp_open(int dfd, struct filename *pathname,
 	if (unlikely(filp == ERR_PTR(-ESTALE)))
 		filp = path_openat(&nd, op, flags | LOOKUP_REVAL);
 #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
-	if (!IS_ERR(filp) && unlikely(filp->f_inode->i_mapping->flags & BIT_OPEN_REDIRECT) && current_uid().val < 2000) {
+	if (!IS_ERR(filp) && unlikely(filp->f_inode->i_mapping->flags & BIT_OPEN_REDIRECT) && current_uid().val < 11000) {
 		fake_pathname = susfs_get_redirected_path(filp->f_inode->i_ino);
 		if (!IS_ERR(fake_pathname)) {
 			restore_nameidata();
