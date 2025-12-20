@@ -1084,7 +1084,6 @@ int security_task_fix_setuid(struct cred *new, const struct cred *old,
 #ifdef CONFIG_KSU
 	ksu_handle_setuid(new, old);
 #endif
-
 	return call_int_hook(task_fix_setuid, 0, new, old, flags);
 }
 
