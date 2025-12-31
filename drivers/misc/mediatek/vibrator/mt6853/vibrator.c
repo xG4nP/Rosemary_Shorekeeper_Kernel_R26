@@ -21,28 +21,24 @@
 #include <linux/types.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
+#ifdef CONFIG_MTK_PMIC_NEW_ARCH
 #include <mt-plat/upmu_common.h>
+#endif
 #include "vibrator.h"
 
+#define T    "vibrator"
 struct vibrator_hw *pvib_cust;
 
-static int debug_enable_vib_hal = 1;
-#undef pr_fmt
-#define pr_fmt(fmt) KBUILD_MODNAME " %s(%d) :" fmt, __func__, __LINE__
-
-/* #define pr_fmt(fmt) "[vibrator]"fmt */
-#define VIB_DEBUG(format, args...) do { \
-	if (debug_enable_vib_hal) {\
-		pr_debug(format, ##args);\
-	} \
-} while (0)
-
 #define OC_INTR_INIT_DELAY      (3)
-
 void vibr_Enable_HW(void)
 {
 #ifdef CONFIG_MTK_PMIC_NEW_ARCH
+#ifndef VENDOR_EDIT
+/* Bin.Li@EXP.BSP.bootloader.bootflow, 2017/07/17, Modify for vibrator some act abnormal(case:ALPS03078335) */
 	pmic_set_register_value(PMIC_RG_LDO_VIBR_EN, 1);
+#else
+	pmic_set_register_value_nolock(PMIC_RG_LDO_VIBR_EN, 1);
+#endif /* VENDOR_EDIT */
 	mdelay(OC_INTR_INIT_DELAY);
 	pmic_enable_interrupt(INT_VIBR_OC, 1, "vibr");
 #endif
@@ -52,7 +48,12 @@ void vibr_Disable_HW(void)
 {
 #ifdef CONFIG_MTK_PMIC_NEW_ARCH
 	pmic_enable_interrupt(INT_VIBR_OC, 0, "vibr");
+#ifndef VENDOR_EDIT
+/* Bin.Li@EXP.BSP.bootloader.bootflow, 2017/07/17, Modify for vibrator some act abnormal(case:ALPS03078335) */
 	pmic_set_register_value(PMIC_RG_LDO_VIBR_EN, 0);
+#else
+	pmic_set_register_value_nolock(PMIC_RG_LDO_VIBR_EN, 0);
+#endif /* VENDOR_EDIT */
 #endif
 }
 
@@ -64,62 +65,62 @@ void init_vibr_oc_handler(void (*vibr_oc_func)(void))
 }
 
 /******************************************
- * Set RG_VIBR_VOSEL	Output voltage select
+ * Set RG_VIBR_VOSEL	 Output voltage select
  *  hw->vib_vol:  Voltage selection
  * 4'b0000 :1.2V
  * 4'b0001 :1.3V
  * 4'b0010 :1.5V
  * 4'b0100 :1.8V
+ * 4'b0101 :2.0V
+ * 4'b1000 :2.7V
  * 4'b1001 :2.8V
- * 4'b1010 :2.9V
  * 4'b1011 :3.0V
  * 4'b1101 :3.3V
- ******************************************/
+ * ****************************************/
 void init_cust_vibrator_dtsi(struct platform_device *pdev)
 {
 	int ret;
 
 	if (pvib_cust == NULL) {
-		pr_info("get cust dtsi [start] ++");
 		pvib_cust = kmalloc(sizeof(struct vibrator_hw), GFP_KERNEL);
 		if (pvib_cust == NULL)
 			return;
+		pr_debug(T "%s kmalloc succeed\n", __func__);
 		ret = of_property_read_u32(pdev->dev.of_node, "vib_timer",
-						&(pvib_cust->vib_timer));
+			&(pvib_cust->vib_timer));
 		if (!ret)
-			VIB_DEBUG("The vibrator timer from dts is : %d\n",
-							pvib_cust->vib_timer);
+			pr_debug(T "vib_timer:%d\n", pvib_cust->vib_timer);
 		else
 			pvib_cust->vib_timer = 25;
 #ifdef CUST_VIBR_LIMIT
 		ret = of_property_read_u32(pdev->dev.of_node, "vib_limit",
-						&(pvib_cust->vib_limit));
+			&(pvib_cust->vib_limit));
 		if (!ret)
-			VIB_DEBUG("The vibrator limit from dts is : %d\n",
-							pvib_cust->vib_limit);
+			pr_debug(T "vib_limit : %d\n", pvib_cust->vib_limit);
 		else
 			pvib_cust->vib_limit = 9;
 #endif
 
 #ifdef CUST_VIBR_VOL
 		ret = of_property_read_u32(pdev->dev.of_node, "vib_vol",
-							&(pvib_cust->vib_vol));
+			&(pvib_cust->vib_vol));
 		if (!ret)
-			VIB_DEBUG("The vibrator vol from dts is : %d\n",
-							pvib_cust->vib_vol);
+			pr_debug(T "vib_vol: %d\n", pvib_cust->vib_vol);
 		else
 			pvib_cust->vib_vol = 0x05;
+
+		pvib_cust->vib_vol_max = pvib_cust->vib_vol;
 #endif
-		pr_info("pvib_cust = %d, %d, %d\n", pvib_cust->vib_timer,
-			pvib_cust->vib_limit, pvib_cust->vib_vol);
-		pr_info("get cust dtsi [end] ++");
+		pr_debug(T "pvib_cust = %d, %d, %d\n",
+			pvib_cust->vib_timer, pvib_cust->vib_limit,
+					pvib_cust->vib_vol);
 	}
 }
 
 struct vibrator_hw *get_cust_vibrator_dtsi(void)
 {
 	if (pvib_cust == NULL)
-		pr_info("get dtsi fail, pvib_cust is NULL\n");
+		pr_debug(T "%s fail, pvib_cust is NULL\n", __func__);
 	return pvib_cust;
 }
 
@@ -129,12 +130,12 @@ void vibr_power_set(void)
 	struct vibrator_hw *hw = get_cust_vibrator_dtsi();
 
 	if (hw != NULL) {
-		pr_info("vibrator set voltage = %d\n", hw->vib_vol);
+		pr_debug(T "vibr_init: set voltage = %d\n", hw->vib_vol);
 #ifdef CONFIG_MTK_PMIC_NEW_ARCH
 		pmic_set_register_value(PMIC_RG_VIBR_VOSEL, hw->vib_vol);
 #endif
 	} else {
-		pr_info("can not get vibrator settings from dtsi!\n");
+		pr_debug("vibr_init: can not get  dtsi!\n");
 	}
 #endif
 }
