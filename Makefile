@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
 VERSION = 4
 PATCHLEVEL = 14
-SUBLEVEL = 357
-EXTRAVERSION = -The-Shorekeeper
+SUBLEVEL = 371-rc4
+EXTRAVERSION = -Good4Nothing
 NAME = G4nP
 
 # *DOCUMENTATION*
